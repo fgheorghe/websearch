@@ -6,6 +6,7 @@ import os
 ollama_base_url = os.environ.get('OLLAMA_BASE_URL', 'http://localhost:11434')
 searx_host = os.environ.get('SEARX_HOST', 'http://localhost:30053')
 ollama_default_model = os.environ.get('OLLAMA_DEFAULT_MODEL', 'hermes3:latest')
+crawl_for_ai_url = os.environ.get('CRAWL_FOR_AI_URL', 'http://localhost:11235/crawl')
 
 st.set_page_config(layout="wide")
 st.markdown(
@@ -76,7 +77,8 @@ if prompt:
         selected_model,
         [option["id"] for option in selected_tools],
         searx_host,
-        ollama_base_url
+        ollama_base_url,
+        crawl_for_ai_url
     )
     st.session_state[MESSAGES].append(Message(actor=ASSISTANT, payload=response))
     st.chat_message(ASSISTANT).markdown(response, unsafe_allow_html=True)
