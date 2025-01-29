@@ -14,7 +14,7 @@ def get_page_code(url, crawl_for_ai_url):
 
     # Basic crawl with authentication
     response = requests.post(
-        crawl_for_ai_url,
+        f"{crawl_for_ai_url}/crawl",
         headers=headers,
         json={
             "urls": url,
@@ -44,7 +44,7 @@ def get_page_code(url, crawl_for_ai_url):
 
     while True:
         response = requests.get(
-            f"http://server.grosan.co.uk:11235/task/{task_id}",
+            f"{crawl_for_ai_url}/task/{task_id}",
             headers=headers,
         )
 

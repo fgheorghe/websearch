@@ -3,6 +3,8 @@ from llama_index.core import VectorStoreIndex, Settings
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core import Document
 
+Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
+
 def rag(results, prompt, ollama_base_url, selected_model):
     Settings.llm = Ollama(
         base_url=ollama_base_url,
@@ -11,8 +13,6 @@ def rag(results, prompt, ollama_base_url, selected_model):
         temperature=0,
         num_ctx=4096
     )
-
-    Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
 
     documents = [
         Document(
