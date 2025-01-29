@@ -21,7 +21,7 @@ def get_page_code(url, crawl_for_ai_url):
             "crawler_params": {
                 # Browser Configuration
                 "text_mode": True,
-                "extra_args": ["--enable-reader-mode=true"],
+                # "extra_args": ["--enable-reader-mode=true"],
                 # "headless": True,  # Run in headless mode
                 "browser_type": "chromium",  # chromium/firefox/webkit
                 # "user_agent": "custom-agent",        # Custom user agent
@@ -52,13 +52,14 @@ def get_page_code(url, crawl_for_ai_url):
             return response.json()['result']
 
 
-def create_search_internet(debug_container, searx_host, ollama_base_url, selected_model, crawl_for_ai_url):
+def create_search_internet(log_container, searx_host, ollama_base_url, selected_model, crawl_for_ai_url):
     def search_internet(query: str):
         """Search the internet for a given query."""
         try:
-            num_results = 20
-            with debug_container:
-                st.write("Query:", query)
+            num_results = 10
+
+            with log_container:
+                st.write("Searching the web for:", query)
 
             # num_results = 10
             search = SearxSearchWrapper(searx_host=searx_host)
@@ -72,6 +73,9 @@ def create_search_internet(debug_container, searx_host, ollama_base_url, selecte
                 } for
                 result
                 in results]
+
+            with log_container:
+                st.write("RAGing:", query)
 
             return rag(filtered_results, query, ollama_base_url, selected_model)
         except Exception as e:
@@ -91,19 +95,23 @@ def list_models(ollama_base_url):
     return results
 
 
-def search_chat(prompt, debug_container, selected_model, selected_tools, searx_host, ollama_base_url, crawl_for_ai_url):
+def search_chat(prompt, log_container, selected_model, selected_tools, searx_host, ollama_base_url, crawl_for_ai_url):
+    prompt = f"Using the search_internet_tool, search the internet for: {prompt}"
     llm = Ollama(
         model=selected_model,
         base_url=ollama_base_url,
         temperature=0.5,
         num_ctx=4096)  # , num_predict=1100)
 
+    with log_container:
+        st.write("Prompt:", prompt)
+
     available_tools = [{
         "name": "search_internet_tool",
         "tool": Tool(
             name="search_internet_tool",
             description="Search the internet for a given query.",
-            func=create_search_internet(debug_container, searx_host, ollama_base_url, selected_model, crawl_for_ai_url),
+            func=create_search_internet(log_container, searx_host, ollama_base_url, selected_model, crawl_for_ai_url),
             return_direct=True
         )
     }]
@@ -120,6 +128,9 @@ def search_chat(prompt, debug_container, selected_model, selected_tools, searx_h
         handle_parsing_errors=True,
         max_iterations=100,
     )
+
+    with log_container:
+        st.write("Running prompt: ", prompt)
 
     response = agent.run(prompt)
 

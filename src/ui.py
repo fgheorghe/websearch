@@ -2,7 +2,7 @@ import streamlit as st
 from chat import search_chat, list_models
 from dataclasses import dataclass
 import os
-import time
+from utils import make_stream
 
 ollama_base_url = os.environ.get('OLLAMA_BASE_URL', 'http://localhost:11434')
 searx_host = os.environ.get('SEARX_HOST', 'http://localhost:30053')
@@ -41,9 +41,9 @@ selected_tools = st.multiselect(
     default=[tool_options[0]],
 )
 
-debug_container = st.container()
-with debug_container:
-    st.subheader("Debug Information")
+log_container = st.container()
+with log_container:
+    st.subheader("Last log")
 
 
 @dataclass
@@ -65,21 +65,6 @@ for msg in st.session_state[MESSAGES]:
 
 prompt: str = st.chat_input("Search something...")
 
-if st.button('Reset Chat'):
-    st.session_state.messages = []
-    st.rerun()
-
-def response_generator(text):
-    for word in text.split(" "):
-        yield word + " "
-        time.sleep(0.025)  # Simulate delay for streaming effect
-
-def make_stream(container, text):
-    accumulated_content = ""
-    for chunk in response_generator(text):
-        accumulated_content += chunk
-        container.markdown(accumulated_content, unsafe_allow_html=True)
-
 if prompt:
     st.session_state[MESSAGES].append(Message(actor=USER, payload=prompt))
     st.chat_message(USER).markdown(prompt, unsafe_allow_html=True)
@@ -89,7 +74,7 @@ if prompt:
 
     response = search_chat(
         prompt,
-        debug_container,
+        log_container,
         selected_model,
         [option["id"] for option in selected_tools],
         searx_host,
@@ -97,6 +82,10 @@ if prompt:
         crawl_for_ai_url
     )
 
-    st.session_state[MESSAGES].append(Message(actor=ASSISTANT, payload=response))
+    st.session_state[MESSAGES].append(Message(actor=ASSISTANT, payload=response['content']))
 
-    make_stream(container, response)
+    make_stream(container, str(response['content']))
+
+    with st.expander("Sources"):
+        for citation in response['citations']:
+            st.markdown(f"[{citation["title"]}]({citation["link"]})")
