@@ -1,0 +1,14 @@
+services:
+  websearch:
+    platform: linux/amd64
+    build:
+      context: .
+
+    restart: always
+    ports:
+        - ${UI_PORT:-18089}:8080
+
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-"http://localhost:11434"}
+      - SEARX_HOST=${SEARX_HOST:-"http://localhost:30053"}
+      - OLLAMA_DEFAULT_MODEL=${OLLAMA_DEFAULT_MODEL:-"hermes3:latest"}
