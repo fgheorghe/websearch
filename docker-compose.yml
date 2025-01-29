@@ -12,3 +12,4 @@ services:
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-"http://localhost:11434"}
       - SEARX_HOST=${SEARX_HOST:-"http://localhost:30053"}
       - OLLAMA_DEFAULT_MODEL=${OLLAMA_DEFAULT_MODEL:-"hermes3:latest"}
+      - CRAWL_FOR_AI_URL=${CRAWL_FOR_AI_URL:-"http://localhost:11235"}
