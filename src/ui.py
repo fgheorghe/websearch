@@ -2,10 +2,12 @@ import streamlit as st
 from chat import search_chat, list_models
 from dataclasses import dataclass
 import os
+import time
 
 ollama_base_url = os.environ.get('OLLAMA_BASE_URL', 'http://localhost:11434')
 searx_host = os.environ.get('SEARX_HOST', 'http://localhost:30053')
 ollama_default_model = os.environ.get('OLLAMA_DEFAULT_MODEL', 'hermes3:latest')
+crawl_for_ai_url = os.environ.get('CRAWL_FOR_AI_URL', 'http://localhost:11235')
 
 st.set_page_config(layout="wide")
 st.markdown(
@@ -67,16 +69,34 @@ if st.button('Reset Chat'):
     st.session_state.messages = []
     st.rerun()
 
+def response_generator(text):
+    for word in text.split(" "):
+        yield word + " "
+        time.sleep(0.025)  # Simulate delay for streaming effect
+
+def make_stream(container, text):
+    accumulated_content = ""
+    for chunk in response_generator(text):
+        accumulated_content += chunk
+        container.markdown(accumulated_content, unsafe_allow_html=True)
+
 if prompt:
     st.session_state[MESSAGES].append(Message(actor=USER, payload=prompt))
     st.chat_message(USER).markdown(prompt, unsafe_allow_html=True)
+
+    container = st.empty()
+    make_stream(container, "Searching...")
+
     response = search_chat(
         prompt,
         debug_container,
         selected_model,
         [option["id"] for option in selected_tools],
         searx_host,
-        ollama_base_url
+        ollama_base_url,
+        crawl_for_ai_url
     )
+
     st.session_state[MESSAGES].append(Message(actor=ASSISTANT, payload=response))
-    st.chat_message(ASSISTANT).markdown(response, unsafe_allow_html=True)
+
+    make_stream(container, response)
