@@ -9,4 +9,7 @@ def make_stream(container, text):
     accumulated_content = ""
     for chunk in response_generator(text):
         accumulated_content += chunk
-        container.markdown(accumulated_content, unsafe_allow_html=True)
+
+        html_content = f"""{accumulated_content}<span class="cursor">_</span>"""
+
+        container.markdown(html_content, unsafe_allow_html=True)
